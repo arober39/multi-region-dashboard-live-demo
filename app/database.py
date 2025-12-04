@@ -213,7 +213,7 @@ async def get_health_metrics(region_id: str) -> dict:
                     try:
                         pg_stat_result = await conn.fetch(
                             """
-                            SELECT 
+                            SELECT
                                 LEFT(query, 150) AS query_preview,
                                 calls,
                                 total_exec_time,
@@ -225,6 +225,7 @@ async def get_health_metrics(region_id: str) -> dict:
                             FROM pg_stat_statements
                             WHERE query NOT LIKE '%pg_stat_statements%'
                               AND query NOT LIKE '%pg_catalog%'
+                              AND query NOT LIKE '%<insufficient privilege>%'
                             ORDER BY calls DESC
                             LIMIT 10
                             """
@@ -235,13 +236,13 @@ async def get_health_metrics(region_id: str) -> dict:
                             try:
                                 pg_stat_statements.append({
                                     "query": row["query_preview"] + ("..." if len(row["query_preview"]) >= 150 else ""),
-                                    "calls": row["calls"],
-                                    "total_time_ms": round(row["total_exec_time"], 2),
-                                    "mean_time_ms": round(row["mean_exec_time"], 2),
-                                    "max_time_ms": round(row["max_exec_time"], 2),
-                                    "cache_hit_pct": round(row["cache_hit_pct"], 2) if row["cache_hit_pct"] else None,
-                                    "shared_blks_hit": row["shared_blks_hit"],
-                                    "shared_blks_read": row["shared_blks_read"],
+                                    "calls": int(row["calls"]),
+                                    "total_time_ms": round(float(row["total_exec_time"]), 2),
+                                    "mean_time_ms": round(float(row["mean_exec_time"]), 2),
+                                    "max_time_ms": round(float(row["max_exec_time"]), 2),
+                                    "cache_hit_pct": round(float(row["cache_hit_pct"]), 2) if row["cache_hit_pct"] else None,
+                                    "shared_blks_hit": int(row["shared_blks_hit"]),
+                                    "shared_blks_read": int(row["shared_blks_read"]),
                                 })
                             except Exception:
                                 # Skip rows with privilege issues
@@ -293,3 +294,266 @@ async def test_all_regions(region_ids: list[str]) -> dict:
     )
 
     return {"results": region_results}
+
+
+async def save_connection_check(region_id: str, result: dict, user_key: str = None) -> None:
+    """Save connection check result to database."""
+    # Always save to US East (primary database)
+    dsn = get_dsn("us-east")
+    if not dsn:
+        return
+
+    try:
+        async with get_connection(dsn) as conn:
+            await conn.execute(
+                """
+                INSERT INTO connection_checks (
+                    region_id, success, latency_ms, server_ip, backend_pid,
+                    pg_version, error_message, user_key
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                """,
+                region_id,
+                result.get("success", False),
+                result.get("latency_ms"),
+                result.get("server_ip"),
+                result.get("backend_pid"),
+                result.get("pg_version"),
+                result.get("error"),
+                user_key,
+            )
+    except Exception as e:
+        # Log error but don't fail the request (table might not exist yet)
+        import logging
+        logging.warning(f"Failed to save connection check for {region_id}: {e}")
+
+
+async def save_latency_check(region_id: str, result: dict, user_key: str = None) -> None:
+    """Save latency check result to database."""
+    # Always save to US East (primary database)
+    dsn = get_dsn("us-east")
+    if not dsn:
+        return
+
+    try:
+        async with get_connection(dsn) as conn:
+            # Convert timings list to JSON
+            import json
+            timings_json = json.dumps(result.get("timings", []))
+
+            await conn.execute(
+                """
+                INSERT INTO latency_checks (
+                    region_id, success, iterations, min_ms, max_ms, avg_ms,
+                    timings, error_message, user_key
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                """,
+                region_id,
+                result.get("success", False),
+                result.get("iterations"),
+                result.get("min_ms"),
+                result.get("max_ms"),
+                result.get("avg_ms"),
+                timings_json,
+                result.get("error"),
+                user_key,
+            )
+    except Exception as e:
+        import logging
+        logging.warning(f"Failed to save latency check for {region_id}: {e}")
+
+
+async def save_load_test_check(region_id: str, result: dict, user_key: str = None) -> None:
+    """Save load test result to database."""
+    # Always save to US East (primary database)
+    dsn = get_dsn("us-east")
+    if not dsn:
+        return
+
+    try:
+        async with get_connection(dsn) as conn:
+            await conn.execute(
+                """
+                INSERT INTO load_test_checks (
+                    region_id, success, concurrent_connections, min_ms, max_ms,
+                    avg_ms, total_time_ms, queries_per_second, error_message, user_key
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                """,
+                region_id,
+                result.get("success", False),
+                result.get("concurrent"),
+                result.get("min_ms"),
+                result.get("max_ms"),
+                result.get("avg_ms"),
+                result.get("total_time_ms"),
+                result.get("queries_per_second"),
+                result.get("error"),
+                user_key,
+            )
+    except Exception as e:
+        import logging
+        logging.warning(f"Failed to save load test check for {region_id}: {e}")
+
+
+async def save_health_metrics_check(region_id: str, result: dict, user_key: str = None) -> None:
+    """Save health metrics check result to database."""
+    # Always save to US East (primary database)
+    dsn = get_dsn("us-east")
+    if not dsn:
+        return
+
+    try:
+        async with get_connection(dsn) as conn:
+            # Convert warnings list to JSON
+            import json
+            warnings_json = json.dumps(result.get("warnings", []))
+
+            await conn.execute(
+                """
+                INSERT INTO health_metrics_checks (
+                    region_id, success, cache_hit_ratio, active_connections,
+                    idle_connections, total_connections, db_size,
+                    pg_stat_statements_available, warnings, error_message, user_key
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                """,
+                region_id,
+                result.get("success", False),
+                result.get("cache_hit_ratio"),
+                result.get("active_connections"),
+                result.get("idle_connections"),
+                result.get("total_connections"),
+                result.get("db_size"),
+                result.get("pg_stat_statements_available", False),
+                warnings_json,
+                result.get("error"),
+                user_key,
+            )
+    except Exception as e:
+        import logging
+        logging.warning(f"Failed to save health metrics check for {region_id}: {e}")
+
+
+async def get_recent_connection_checks(region_id: str, limit: int = 10) -> list[dict]:
+    """Get recent connection check history for a region."""
+    dsn = get_dsn(region_id)
+    if not dsn:
+        return []
+
+    try:
+        async with get_connection(dsn) as conn:
+            rows = await conn.fetch(
+                """
+                SELECT
+                    id, region_id, checked_at, success, latency_ms,
+                    server_ip, backend_pid, error_message
+                FROM connection_checks
+                WHERE region_id = $1
+                ORDER BY checked_at DESC
+                LIMIT $2
+                """,
+                region_id,
+                limit,
+            )
+
+            return [dict(row) for row in rows]
+    except Exception:
+        return []
+
+
+async def get_connection_check_summary(region_id: str) -> dict:
+    """Get summary statistics for connection checks in the last 24 hours."""
+    dsn = get_dsn(region_id)
+    if not dsn:
+        return {}
+
+    try:
+        async with get_connection(dsn) as conn:
+            row = await conn.fetchrow(
+                """
+                SELECT * FROM recent_connection_checks
+                WHERE region_id = $1
+                """,
+                region_id,
+            )
+
+            return dict(row) if row else {}
+    except Exception:
+        return {}
+
+
+async def get_all_recent_checks(region_ids: list[str], limit: int = 20) -> list[dict]:
+    """Get recent checks across all regions combined, sorted by timestamp."""
+    # Always query from US East (primary database where all checks are stored)
+    dsn = get_dsn("us-east")
+    if not dsn:
+        return []
+
+    try:
+        async with get_connection(dsn) as conn:
+            # Get all types of checks across all regions
+            rows = await conn.fetch(
+                """
+                SELECT
+                    'connection' as check_type,
+                    region_id,
+                    checked_at,
+                    success,
+                    latency_ms as metric_value,
+                    'ms' as metric_unit,
+                    error_message,
+                    user_key
+                FROM connection_checks
+                WHERE region_id = ANY($1)
+
+                UNION ALL
+
+                SELECT
+                    'latency' as check_type,
+                    region_id,
+                    checked_at,
+                    success,
+                    avg_ms as metric_value,
+                    'ms' as metric_unit,
+                    error_message,
+                    user_key
+                FROM latency_checks
+                WHERE region_id = ANY($1)
+
+                UNION ALL
+
+                SELECT
+                    'load_test' as check_type,
+                    region_id,
+                    checked_at,
+                    success,
+                    queries_per_second as metric_value,
+                    'qps' as metric_unit,
+                    error_message,
+                    user_key
+                FROM load_test_checks
+                WHERE region_id = ANY($1)
+
+                UNION ALL
+
+                SELECT
+                    'health' as check_type,
+                    region_id,
+                    checked_at,
+                    success,
+                    cache_hit_ratio as metric_value,
+                    '%' as metric_unit,
+                    error_message,
+                    user_key
+                FROM health_metrics_checks
+                WHERE region_id = ANY($1)
+
+                ORDER BY checked_at DESC
+                LIMIT $2
+                """,
+                region_ids,
+                limit,
+            )
+
+            return [dict(row) for row in rows]
+    except Exception:
+        # Table might not exist yet
+        return []

@@ -1,0 +1,69 @@
+{% if checks %}
+<div class="table-responsive">
+    <table class="table table-sm table-hover">
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Region</th>
+                <th>Check Type</th>
+                <th>Status</th>
+                <th>Metric</th>
+                <th>Error</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for check in checks %}
+            <tr class="{% if not check.success %}table-danger{% endif %}">
+                <td>
+                    <small>{{ check.checked_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                </td>
+                <td>
+                    <strong>{{ check.region.name if check.region else check.region_id }}</strong>
+                    <br>
+                    <small class="text-muted">{{ check.region_id }}</small>
+                </td>
+                <td>
+                    {% if check.check_type == 'connection' %}
+                        <span class="badge bg-primary">Connection</span>
+                    {% elif check.check_type == 'latency' %}
+                        <span class="badge bg-warning text-dark">Latency</span>
+                    {% elif check.check_type == 'load_test' %}
+                        <span class="badge bg-danger">Load Test</span>
+                    {% elif check.check_type == 'health' %}
+                        <span class="badge bg-success">Health</span>
+                    {% else %}
+                        <span class="badge bg-secondary">{{ check.check_type }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if check.success %}
+                        <span class="text-success">✓ Success</span>
+                    {% else %}
+                        <span class="text-danger">✗ Failed</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if check.success and check.metric_value %}
+                        <strong>{{ "%.2f"|format(check.metric_value) }}</strong> {{ check.metric_unit }}
+                    {% else %}
+                        <span class="text-muted">N/A</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if check.error_message %}
+                        <small class="text-danger">{{ check.error_message[:50] }}{% if check.error_message|length > 50 %}...{% endif %}</small>
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center text-muted py-4">
+    <p>No check history available yet.</p>
+    <small>Run some tests to see the history here!</small>
+</div>
+{% endif %}
