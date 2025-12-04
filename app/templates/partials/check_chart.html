@@ -1,0 +1,100 @@
+<div style="height: 400px; padding: 1rem;">
+    <canvas id="latencyChart"></canvas>
+</div>
+
+<script>
+(function() {
+    // Destroy existing chart if it exists
+    if (window.latencyChartInstance) {
+        window.latencyChartInstance.destroy();
+    }
+
+    // Fetch chart data
+    fetch('/api/checks/chart-data')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('latencyChart');
+
+            if (!ctx) {
+                console.error('Canvas element not found');
+                return;
+            }
+
+            window.latencyChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: data.datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Latency Over Time by Region',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += context.parsed.y.toFixed(2) + ' ms';
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'minute',
+                                displayFormats: {
+                                    minute: 'HH:mm'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            },
+                            ticks: {
+                                source: 'auto',
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Latency (ms)'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error loading chart data:', error);
+            document.getElementById('latencyChart').parentElement.innerHTML =
+                '<div class="text-center text-muted py-4"><p>Error loading chart data</p></div>';
+        });
+})();
+</script>

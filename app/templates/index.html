@@ -9,6 +9,21 @@
 </div>
 
 <div class="container">
+    <!-- Map Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Server Locations Map</h5>
+                    <small class="opacity-75">Database regions and your location</small>
+                </div>
+                <div class="card-body p-0">
+                    <div id="map"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Quick Actions -->
     <div class="row mb-4">
         <div class="col-12">
@@ -158,6 +173,112 @@
             </div>
         </div>
     </div>
+
+    <!-- AI Chat Assistant -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-chat-dots-fill me-2" viewBox="0 0 16 16">
+                                <path d="M16 8c0 3.866-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.584.296-1.925.864-4.181 1.234-.2.032-.352-.176-.273-.362.354-.836.674-1.95.77-2.966C.744 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7M5 8a1 1 0 1 0-2 0 1 1 0 0 0 2 0m4 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0m3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
+                            </svg>
+                            AI Performance Assistant
+                        </h5>
+                        <small class="text-muted">Powered by Ollama (llama3.2) - Ask questions about your database performance</small>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="chat-messages" style="max-height: 400px; overflow-y: auto; margin-bottom: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                        <div class="text-muted text-center py-3">
+                            <p>👋 Hi! I'm your AI assistant. Ask me about:</p>
+                            <ul class="list-unstyled">
+                                <li>• Database latency and performance</li>
+                                <li>• Regional comparisons</li>
+                                <li>• Performance optimization tips</li>
+                                <li>• Understanding your metrics</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <input type="text"
+                               id="chat-input"
+                               class="form-control"
+                               placeholder="Ask me about your database performance..."
+                               onkeypress="if(event.key === 'Enter') sendChatMessage()">
+                        <button class="btn btn-primary" onclick="sendChatMessage()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send-fill" viewBox="0 0 16 16">
+                                <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471z"/>
+                            </svg>
+                            Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Check History -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">Recent Check History</h5>
+                        <small class="text-muted">Last 20 checks across all regions</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <!-- View Toggle -->
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button"
+                                    class="btn btn-outline-secondary active"
+                                    id="view-table-btn"
+                                    onclick="switchView('table')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-table" viewBox="0 0 16 16">
+                                    <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm15 2h-4v3h4zm0 4h-4v3h4zm0 4h-4v3h3a1 1 0 0 0 1-1zm-5 3v-3H6v3zm-5 0v-3H1v2a1 1 0 0 0 1 1zm-4-4h4V8H1zm0-4h4V4H1zm5-3v3h4V4zm4 4H6v3h4z"/>
+                                </svg>
+                                Table
+                            </button>
+                            <button type="button"
+                                    class="btn btn-outline-secondary"
+                                    id="view-chart-btn"
+                                    onclick="switchView('chart')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-graph-up" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M0 0h1v15h15v1H0zm14.817 3.113a.5.5 0 0 1 .07.704l-4.5 5.5a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61 4.15-5.073a.5.5 0 0 1 .704-.07"/>
+                                </svg>
+                                Chart
+                            </button>
+                        </div>
+                        <!-- Refresh Button -->
+                        <button class="btn btn-sm btn-outline-secondary"
+                                id="refresh-btn"
+                                onclick="refreshCurrentView()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
+                            </svg>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0" id="check-history-container">
+                    <!-- Table View -->
+                    <div id="check-history-table"
+                         hx-get="/api/checks/history?limit=20"
+                         hx-trigger="load, check-updated from:body"
+                         hx-swap="innerHTML">
+                        <div class="text-center text-muted py-4">
+                            <div class="spinner-border spinner-border-sm me-2"></div>
+                            Loading check history...
+                        </div>
+                    </div>
+                    <!-- Chart View (hidden by default) -->
+                    <div id="check-history-chart" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <footer class="mt-5 py-4 bg-light">
@@ -165,4 +286,618 @@
         <small>Multi-Region PostgreSQL Testing Dashboard | Built with FastAPI + HTMX + Aiven + LaunchDarkly</small>
     </div>
 </footer>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Global variables for map and user location
+    let map;
+    let userLocation = null;
+    let regionLocations = {};
+    let testLines = {};
+
+    document.addEventListener('DOMContentLoaded', async function() {
+        // Initialize the map centered on the world
+        map = L.map('map').setView([20, 0], 2);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Custom icon for server locations
+        const serverIcon = L.divIcon({
+            html: '<div style="background-color: #ff3554; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
+            className: '',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+
+        // Custom icon for user location
+        const userIcon = L.divIcon({
+            html: '<div style="background-color: #405BFF; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
+            className: '',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+
+        try {
+            // Fetch server locations from API
+            const response = await fetch('/api/regions/locations');
+            const data = await response.json();
+
+            // Add markers for each server region and store locations
+            data.regions.forEach(region => {
+                // Store region location for later use
+                regionLocations[region.id] = {
+                    lat: region.latitude,
+                    lng: region.longitude,
+                    name: region.name
+                };
+
+                const marker = L.marker([region.latitude, region.longitude], {
+                    icon: serverIcon
+                }).addTo(map);
+
+                marker.bindPopup(`
+                    <div style="text-align: center;">
+                        <h6>${region.name}</h6>
+                        <small style="color: #6c757d;">${region.id}</small>
+                        <br>
+                        <small style="color: #6c757d;">Server Location</small>
+                    </div>
+                `);
+            });
+
+            // Add user location if geolocation is available
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const userLat = position.coords.latitude;
+                        const userLng = position.coords.longitude;
+
+                        // Store user location globally
+                        userLocation = { lat: userLat, lng: userLng };
+
+                        // Add user location marker
+                        const userMarker = L.marker([userLat, userLng], {
+                            icon: userIcon
+                        }).addTo(map);
+
+                        userMarker.bindPopup(`
+                            <div style="text-align: center;">
+                                <h6>Your Location</h6>
+                                <small style="color: #6c757d;">Lat: ${userLat.toFixed(4)}, Lng: ${userLng.toFixed(4)}</small>
+                            </div>
+                        `).openPopup();
+
+                        // Optionally adjust the map view to include user location
+                        const bounds = L.latLngBounds([]);
+                        bounds.extend([userLat, userLng]);
+                        data.regions.forEach(region => {
+                            bounds.extend([region.latitude, region.longitude]);
+                        });
+                        map.fitBounds(bounds, { padding: [50, 50] });
+                    },
+                    function(error) {
+                        console.log('Geolocation error:', error.message);
+                    }
+                );
+            }
+        } catch (error) {
+            console.error('Error loading map data:', error);
+        }
+    });
+
+    // Function to get color based on test type
+    function getTestColor(testType) {
+        const colors = {
+            'test': '#ff3554',        // Aiven red for connection tests
+            'latency': '#ffc107',     // Yellow for latency tests
+            'health': '#28a745',      // Green for health checks
+            'load-test': '#dc3545'    // Dark red for load tests
+        };
+        return colors[testType] || '#405BFF';
+    }
+
+    // Function to draw a line from user to region
+    function drawTestLine(regionId, testType, result) {
+        if (!userLocation || !regionLocations[regionId]) {
+            console.log('Cannot draw line: user location or region location not available');
+            return;
+        }
+
+        const region = regionLocations[regionId];
+        const color = getTestColor(testType);
+
+        // Remove all existing lines before drawing a new one
+        Object.keys(testLines).forEach(key => {
+            map.removeLayer(testLines[key]);
+        });
+        testLines = {};
+
+        // Create line from user to region
+        const lineOptions = {
+            color: color,
+            weight: 3,
+            opacity: result.pending ? 0.5 : 0.7,
+            dashArray: result.pending ? '5, 10' : (testType === 'latency' ? '10, 10' : null),
+            className: result.pending ? 'pulsing-line' : ''
+        };
+
+        const line = L.polyline(
+            [[userLocation.lat, userLocation.lng], [region.lat, region.lng]],
+            lineOptions
+        ).addTo(map);
+
+        // Format result for tooltip
+        let tooltipContent = `<div style="text-align: center; min-width: 150px;">`;
+        tooltipContent += `<strong>${region.name}</strong><br>`;
+        tooltipContent += `<small>Test Type: ${testType}</small><br>`;
+
+        if (result.pending) {
+            tooltipContent += `<span style="color: #6c757d;">⏳ ${result.message || 'Testing...'}</span>`;
+        } else if (result.success) {
+            tooltipContent += `<span style="color: #28a745;">✓ Success</span><br>`;
+            if (result.latency_ms) {
+                tooltipContent += `<small>Latency: ${result.latency_ms.toFixed(2)}ms</small>`;
+            }
+            if (result.avg_latency_ms) {
+                tooltipContent += `<small>Avg Latency: ${result.avg_latency_ms.toFixed(2)}ms</small>`;
+            }
+            if (result.connections) {
+                tooltipContent += `<small>Connections: ${result.connections}</small>`;
+            }
+        } else {
+            tooltipContent += `<span style="color: #dc3545;">✗ Failed</span><br>`;
+            if (result.error) {
+                tooltipContent += `<small>${result.error}</small>`;
+            }
+        }
+        tooltipContent += `</div>`;
+
+        // Bind tooltip to line
+        line.bindTooltip(tooltipContent, {
+            permanent: false,
+            sticky: true
+        });
+
+        // Store the line reference
+        testLines[regionId] = line;
+
+        // Optionally show the tooltip immediately
+        line.openTooltip();
+    }
+
+    // Listen for HTMX beforeRequest to draw placeholder line immediately
+    document.body.addEventListener('htmx:beforeRequest', function(event) {
+        const path = event.detail.pathInfo.requestPath;
+
+        // Extract region ID and test type from the URL
+        const regionMatch = path.match(/\/api\/regions\/([^\/]+)\/([^?\/]+)/);
+
+        if (regionMatch) {
+            const regionId = regionMatch[1];
+            const testType = regionMatch[2];
+
+            // Draw placeholder line immediately
+            const placeholderResult = {
+                success: null,
+                pending: true,
+                message: 'Testing...'
+            };
+
+            drawTestLine(regionId, testType, placeholderResult);
+        }
+    });
+
+    // Listen for HTMX afterRequest to update line with actual results
+    document.body.addEventListener('htmx:afterRequest', function(event) {
+        const xhr = event.detail.xhr;
+
+        if (xhr) {
+            // Check for custom test result header
+            const testResultHeader = xhr.getResponseHeader('X-Test-Result');
+
+            if (testResultHeader) {
+                try {
+                    const testData = JSON.parse(testResultHeader);
+
+                    // Update the line on the map with the actual test data
+                    drawTestLine(testData.region_id, testData.test_type, testData);
+
+                    // Trigger check history refresh
+                    document.body.dispatchEvent(new CustomEvent('check-updated'));
+                } catch (error) {
+                    console.error('Error parsing test result header:', error);
+                }
+            }
+        }
+    });
+
+    // View switching functions
+    let currentView = 'table';
+
+    function switchView(view) {
+        currentView = view;
+
+        const tableView = document.getElementById('check-history-table');
+        const chartView = document.getElementById('check-history-chart');
+        const tableBtn = document.getElementById('view-table-btn');
+        const chartBtn = document.getElementById('view-chart-btn');
+
+        if (view === 'table') {
+            tableView.style.display = 'block';
+            chartView.style.display = 'none';
+            tableBtn.classList.add('active');
+            chartBtn.classList.remove('active');
+
+            // Trigger table refresh
+            htmx.trigger('#check-history-table', 'load');
+        } else if (view === 'chart') {
+            tableView.style.display = 'none';
+            chartView.style.display = 'block';
+            tableBtn.classList.remove('active');
+            chartBtn.classList.add('active');
+
+            // Load chart
+            loadChart();
+        }
+    }
+
+    function loadChart() {
+        const chartView = document.getElementById('check-history-chart');
+
+        // Show loading
+        chartView.innerHTML = '<div class="text-center text-muted py-4"><div class="spinner-border spinner-border-sm me-2"></div>Loading charts...</div>';
+
+        // Destroy existing charts if they exist
+        if (window.chartInstances) {
+            Object.values(window.chartInstances).forEach(chart => chart.destroy());
+        }
+        window.chartInstances = {};
+
+        // Fetch chart data and render
+        fetch('/api/checks/chart-data')
+            .then(response => response.json())
+            .then(data => {
+                // Check if we have any data at all
+                const hasData = Object.values(data).some(chartData => chartData.datasets && chartData.datasets.length > 0);
+
+                if (!hasData) {
+                    chartView.innerHTML = '<div class="text-center text-muted py-4"><p>No data available yet. Run some tests to see the charts!</p></div>';
+                    return;
+                }
+
+                // Create layout for multiple charts
+                chartView.innerHTML = `
+                    <div style="padding: 1rem;">
+                        <div class="row g-4">
+                            ${data.connection.datasets.length > 0 ? `
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-center mb-3">Connection Test Latency</h6>
+                                        <div style="height: 300px;">
+                                            <canvas id="connectionChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            ` : ''}
+                            ${data.latency.datasets.length > 0 ? `
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-center mb-3">Latency Measurements</h6>
+                                        <div style="height: 300px;">
+                                            <canvas id="latencyChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            ` : ''}
+                            ${data.load_test.datasets.length > 0 ? `
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-center mb-3">Load Test Performance</h6>
+                                        <div style="height: 300px;">
+                                            <canvas id="loadTestChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            ` : ''}
+                            ${data.health.datasets.length > 0 ? `
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-center mb-3">Cache Hit Ratio</h6>
+                                        <div style="height: 300px;">
+                                            <canvas id="healthChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+
+                // Common chart options
+                const baseOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'minute',
+                                displayFormats: {
+                                    minute: 'HH:mm'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                };
+
+                // Create connection chart
+                if (data.connection.datasets.length > 0) {
+                    const ctx = document.getElementById('connectionChart');
+                    if (ctx) {
+                        window.chartInstances.connection = new Chart(ctx, {
+                            type: 'line',
+                            data: data.connection,
+                            options: {
+                                ...baseOptions,
+                                scales: {
+                                    ...baseOptions.scales,
+                                    y: {
+                                        ...baseOptions.scales.y,
+                                        title: { display: true, text: 'Latency (ms)' }
+                                    }
+                                },
+                                plugins: {
+                                    ...baseOptions.plugins,
+                                    tooltip: {
+                                        ...baseOptions.plugins.tooltip,
+                                        callbacks: {
+                                            label: (context) => `${context.dataset.label}: ${context.parsed.y.toFixed(2)} ms`
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+
+                // Create latency chart
+                if (data.latency.datasets.length > 0) {
+                    const ctx = document.getElementById('latencyChart');
+                    if (ctx) {
+                        window.chartInstances.latency = new Chart(ctx, {
+                            type: 'line',
+                            data: data.latency,
+                            options: {
+                                ...baseOptions,
+                                scales: {
+                                    ...baseOptions.scales,
+                                    y: {
+                                        ...baseOptions.scales.y,
+                                        title: { display: true, text: 'Avg Latency (ms)' }
+                                    }
+                                },
+                                plugins: {
+                                    ...baseOptions.plugins,
+                                    tooltip: {
+                                        ...baseOptions.plugins.tooltip,
+                                        callbacks: {
+                                            label: (context) => `${context.dataset.label}: ${context.parsed.y.toFixed(2)} ms`
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+
+                // Create load test chart
+                if (data.load_test.datasets.length > 0) {
+                    const ctx = document.getElementById('loadTestChart');
+                    if (ctx) {
+                        window.chartInstances.loadTest = new Chart(ctx, {
+                            type: 'line',
+                            data: data.load_test,
+                            options: {
+                                ...baseOptions,
+                                scales: {
+                                    ...baseOptions.scales,
+                                    y: {
+                                        ...baseOptions.scales.y,
+                                        title: { display: true, text: 'Queries/Second' }
+                                    }
+                                },
+                                plugins: {
+                                    ...baseOptions.plugins,
+                                    tooltip: {
+                                        ...baseOptions.plugins.tooltip,
+                                        callbacks: {
+                                            label: (context) => `${context.dataset.label}: ${context.parsed.y.toFixed(2)} qps`
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+
+                // Create health chart
+                if (data.health.datasets.length > 0) {
+                    const ctx = document.getElementById('healthChart');
+                    if (ctx) {
+                        window.chartInstances.health = new Chart(ctx, {
+                            type: 'line',
+                            data: data.health,
+                            options: {
+                                ...baseOptions,
+                                scales: {
+                                    ...baseOptions.scales,
+                                    y: {
+                                        ...baseOptions.scales.y,
+                                        max: 100,
+                                        title: { display: true, text: 'Cache Hit Ratio (%)' }
+                                    }
+                                },
+                                plugins: {
+                                    ...baseOptions.plugins,
+                                    tooltip: {
+                                        ...baseOptions.plugins.tooltip,
+                                        callbacks: {
+                                            label: (context) => `${context.dataset.label}: ${context.parsed.y.toFixed(2)}%`
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error loading chart data:', error);
+                chartView.innerHTML = '<div class="text-center text-muted py-4"><p>Error loading chart data</p></div>';
+            });
+    }
+
+    function refreshCurrentView() {
+        if (currentView === 'table') {
+            htmx.trigger('#check-history-table', 'load');
+        } else if (currentView === 'chart') {
+            loadChart();
+        }
+    }
+
+    // Listen for check-updated event to refresh chart if visible
+    document.body.addEventListener('check-updated', function() {
+        if (currentView === 'chart') {
+            setTimeout(() => loadChart(), 500);
+        }
+    });
+
+    // Chat functions
+    function sendChatMessage() {
+        const input = document.getElementById('chat-input');
+        const message = input.value.trim();
+
+        if (!message) {
+            return;
+        }
+
+        // Clear input
+        input.value = '';
+
+        // Add user message to chat
+        addChatMessage(message, 'user');
+
+        // Show loading indicator
+        const loadingId = addChatMessage('Thinking...', 'assistant', true);
+
+        // Send to API
+        fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ message: message })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Remove loading indicator
+            document.getElementById(loadingId).remove();
+
+            if (data.error) {
+                addChatMessage('Sorry, I encountered an error: ' + data.error, 'assistant', false, true);
+            } else {
+                addChatMessage(data.response, 'assistant');
+            }
+        })
+        .catch(error => {
+            // Remove loading indicator
+            document.getElementById(loadingId).remove();
+            addChatMessage('Sorry, I could not connect to the chat service.', 'assistant', false, true);
+            console.error('Chat error:', error);
+        });
+    }
+
+    function addChatMessage(text, role, isLoading = false, isError = false) {
+        const messagesDiv = document.getElementById('chat-messages');
+        const messageId = 'msg-' + Date.now();
+
+        // Remove welcome message if it exists
+        const welcomeMsg = messagesDiv.querySelector('.text-muted.text-center');
+        if (welcomeMsg) {
+            welcomeMsg.remove();
+        }
+
+        const messageDiv = document.createElement('div');
+        messageDiv.id = messageId;
+        messageDiv.className = 'mb-3';
+
+        const isUser = role === 'user';
+        const bgColor = isUser ? '#405BFF' : (isError ? '#dc3545' : '#ffffff');
+        const textColor = isUser ? '#ffffff' : '#000000';
+        const alignment = isUser ? 'text-end' : 'text-start';
+
+        messageDiv.innerHTML = `
+            <div class="${alignment}">
+                <div style="display: inline-block; max-width: 80%; text-align: left; background: ${bgColor}; color: ${textColor}; padding: 0.75rem 1rem; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    ${isLoading ? '<span class="spinner-border spinner-border-sm me-2"></span>' : ''}
+                    <strong>${isUser ? 'You' : '🤖 Assistant'}:</strong><br>
+                    <span style="white-space: pre-wrap;">${escapeHtml(text)}</span>
+                </div>
+            </div>
+        `;
+
+        messagesDiv.appendChild(messageDiv);
+
+        // Scroll to bottom
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+        return messageId;
+    }
+
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+</script>
 {% endblock %}
